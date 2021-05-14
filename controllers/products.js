@@ -1,9 +1,9 @@
-const fs = require('fs').promises;
+const { readProducts } = require('../intermediary');
 
 const listProducts = async (req, res) => {
 
    try {
-      const products = JSON.parse(await fs.readFile('./data/products.json', (e, data) => data)).produtos;
+      const products = await readProducts('./data/products.json');
 
       let { categoria, precoInicial, precoFinal } = req.query;
 

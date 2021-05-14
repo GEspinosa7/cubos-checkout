@@ -1,13 +1,11 @@
 const fs = require('fs').promises;
+const { readCart, modifyCart, resetCart, readProducts } = require('../intermediary');
 
 const showCart = async (req, res) => {
-
    try {
-      const cart = JSON.parse(await fs.readFile('./data/cart.json', (e, data) => data));
-
+      const cart = await readCart('./data/cart.json');
       res.status(200);
       res.json(cart);
-
    } catch (e) {
       res.status(400);
       res.json({
@@ -16,56 +14,42 @@ const showCart = async (req, res) => {
    }
 }
 
-const addProductsToCart = async (req, res) => {
+function validateProduct(product, body) {
+   if (!product) return `O produto como id ${body.id} não existe`;
 
+   if (product.estoque === 0) return `O produto como id ${body.id} não está em estoque`;
+
+   if (body.quantidade > product.estoque) return `Só temos ${product.estoque} desse produto em estoque`;
+
+}
+
+const addProductsToCart = async (req, res) => {
    try {
       const { body } = req;
-
-      const products = JSON.parse(await fs.readFile('./data/products.json', (e, data) => data)).produtos;
-
+      const products = await readProducts('./data/products.json');
       const product = products.find(p => p.id === Number(body.id));
 
-      if (!product) {
-         res.status(404);
-         return res.json({
-            mensagem: `O produto como id ${body.id} não existe`
-         });
+      const error = validateProduct(product, body);
+
+      if (error) {
+         res.status(400);
+         return res.json({ mensagem: error });
       }
 
-      if (product.estoque === 0) {
-         res.status(404);
-         return res.json({
-            mensagem: `O produto como id ${body.id} não está em estoque`
-         });
-      }
-
-      if (body.quantidade > product.estoque) {
-         res.status(404);
-         return res.json({
-            mensagem: `Só temos ${product.estoque} desse produto em estoque`
-         });
-      }
-
-      const cart = JSON.parse(await fs.readFile('./data/cart.json', (e, data) => data));
-
+      const cart = await readCart('./data/cart.json');
       const cartProducts = cart.produtos;
-
-      const newProduct = {
-         "id": product.id,
-         "quantidade": body.quantidade,
-         "nome": product.nome,
-         "preco": product.preco,
-         "categoria": product.categoria,
-      }
-
       const cartProduct = cartProducts.find(p => p.id === product.id);
-
-
 
       if (cartProduct) {
          cartProduct.quantidade += body.quantidade;
       } else {
-         cartProducts.push(newProduct);
+         cartProducts.push({
+            "id": product.id,
+            "quantidade": body.quantidade,
+            "nome": product.nome,
+            "preco": product.preco,
+            "categoria": product.categoria,
+         });
       }
 
       let productSubtotal = 0;
@@ -81,15 +65,13 @@ const addProductsToCart = async (req, res) => {
       let date = new Date();
       date.setDate(date.getDate() + 15);
 
-      const addToCart = {
+      fs.writeFile('./data/cart.json', JSON.stringify({
          "subTotal": productSubtotal,
          "dataDeEntrega": date,
          "valorDoFrete": shipping,
          "totalAPagar": (productSubtotal + shipping),
          "produtos": cartProducts
-      }
-
-      fs.writeFile('./data/cart.json', JSON.stringify(addToCart, null, 2));
+      }, null, 2));
 
       res.status(200);
       res.json(cart);
@@ -99,7 +81,6 @@ const addProductsToCart = async (req, res) => {
          erro: `${e}`
       })
    }
-
 }
 
 const updateProduct = async (req, res) => {
@@ -108,16 +89,16 @@ const updateProduct = async (req, res) => {
       const { idProduct } = req.params;
       const { quantidade } = req.body;
 
-      const cart = JSON.parse(await fs.readFile('./data/cart.json', (e, data) => data));
+      const cart = await readCart('./data/cart.json');
       const cartProducts = cart.produtos;
 
-      const products = JSON.parse(await fs.readFile('./data/products.json', (e, data) => data)).produtos;
+      const products = await readProducts('./data/products.json');
 
       const cartProduct = cartProducts.find(p => p.id === Number(idProduct));
 
       if (!cartProduct) {
          res.status(404);
-         res.json({
+         return res.json({
             mensagem: `O produto com o id ${idProduct} não está no carrinho`
          })
       }
@@ -135,47 +116,26 @@ const updateProduct = async (req, res) => {
             cartProducts.splice(productIndex, 1);
 
             if (cartProducts.length === 0) {
-               fs.writeFile('./data/cart.json', JSON.stringify({
-                  "subTotal": 0,
-                  "dataDeEntrega": 0,
-                  "valorDoFrete": 0,
-                  "totalAPagar": 0,
-                  "produtos": cartProducts,
-               }, null, 2));
-
+               resetCart('./data/cart.json');
                return res.json(cart);
             }
 
-            fs.writeFile('./data/cart.json', JSON.stringify({
-               "subTotal": cart.subTotal,
-               "dataDeEntrega": cart.dataDeEntrega,
-               "valorDoFrete": cart.valorDoFrete,
-               "totalAPagar": cart.totalAPagar,
-               "produtos": cartProducts,
-            }, null, 2));
+            modifyCart('./data/cart.json', cart, cartProducts);
 
             return res.json(cart);
          }
 
          const productIndex = cartProducts.indexOf(cartProduct);
 
-         const updatedProduct = {
+         cartProducts.splice(productIndex, 1, {
             "id": cartProduct.id,
             "quantidade": cartProduct.quantidade + quantidade,
             "nome": cartProduct.nome,
             "preco": cartProduct.preco,
             "categoria": cartProduct.categoria,
-         }
+         });
 
-         cartProducts.splice(productIndex, 1, updatedProduct);
-
-         fs.writeFile('./data/cart.json', JSON.stringify({
-            "subTotal": cart.subTotal,
-            "dataDeEntrega": cart.dataDeEntrega,
-            "valorDoFrete": cart.valorDoFrete,
-            "totalAPagar": cart.totalAPagar,
-            "produtos": cartProducts,
-         }, null, 2));
+         modifyCart('./data/cart.json', cart, cartProducts);
 
          return res.json(cart);
 
@@ -189,23 +149,15 @@ const updateProduct = async (req, res) => {
 
       const productIndex = cartProducts.indexOf(cartProduct);
 
-      const updatedProduct = {
+      cartProducts.splice(productIndex, 1, {
          "id": cartProduct.id,
          "quantidade": cartProduct.quantidade + quantidade,
          "nome": cartProduct.nome,
          "preco": cartProduct.preco,
          "categoria": cartProduct.categoria,
-      }
+      });
 
-      cartProducts.splice(productIndex, 1, updatedProduct);
-
-      fs.writeFile('./data/cart.json', JSON.stringify({
-         "subTotal": cart.subTotal,
-         "dataDeEntrega": cart.dataDeEntrega,
-         "valorDoFrete": cart.valorDoFrete,
-         "totalAPagar": cart.totalAPagar,
-         "produtos": cartProducts,
-      }, null, 2));
+      modifyCart('./data/cart.json', cart, cartProducts);
 
       return res.json(cart);
 
@@ -226,7 +178,7 @@ const removeProduct = async (req, res) => {
    try {
       const { idProduct } = req.params;
 
-      const cart = JSON.parse(await fs.readFile('./data/cart.json', (e, data) => data));
+      const cart = await readCart('./data/cart.json');
 
       const cartProducts = cart.produtos;
 
@@ -244,24 +196,11 @@ const removeProduct = async (req, res) => {
       cartProducts.splice(productIndex, 1);
 
       if (cartProducts.length === 0) {
-         fs.writeFile('./data/cart.json', JSON.stringify({
-            "subTotal": 0,
-            "dataDeEntrega": 0,
-            "valorDoFrete": 0,
-            "totalAPagar": 0,
-            "produtos": cartProducts,
-         }, null, 2));
-
+         resetCart('./data/cart.json');
          return res.json(cart);
       }
 
-      fs.writeFile('./data/cart.json', JSON.stringify({
-         "subTotal": cart.subTotal,
-         "dataDeEntrega": cart.dataDeEntrega,
-         "valorDoFrete": cart.valorDoFrete,
-         "totalAPagar": cart.totalAPagar,
-         "produtos": cartProducts,
-      }, null, 2));
+      modifyCart('./data/cart.json', cart, cartProducts);
 
       res.json(cart);
 
@@ -276,7 +215,7 @@ const removeProduct = async (req, res) => {
 const cleanCart = async (req, res) => {
    try {
 
-      const cart = JSON.parse(await fs.readFile('./data/cart.json', (e, data) => data));
+      const cart = await readCart('./data/cart.json');
 
       if (cart.produtos.length === 0) {
          return res.json({
@@ -284,13 +223,7 @@ const cleanCart = async (req, res) => {
          });
       }
 
-      fs.writeFile('./data/cart.json', JSON.stringify({
-         "subTotal": 0,
-         "dataDeEntrega": null,
-         "valorDoFrete": 0,
-         "totalAPagar": 0,
-         "produtos": [],
-      }, null, 2));
+      resetCart('./data/cart.json');
 
       res.json({
          mensagem: "Todos os items do carrinho foram removidos com sucesso!"

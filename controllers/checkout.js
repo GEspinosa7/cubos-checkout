@@ -1,118 +1,96 @@
 const fs = require('fs').promises;
 
+const { readCart, resetCart, readProducts } = require('../intermediary');
+
+function validateCustomer(customer) {
+   if (!customer.type || customer.type === '') {
+      return "O campo type é obrigatório";
+   }
+
+   if (customer.type !== 'individual') {
+      return "O campo type dever ser 'individual' (este e-commerce só atende pessoas físicas)";
+   }
+
+   if (!customer.country || customer.country === '') {
+      return "O campo country é obrigatório";
+   }
+
+   if (customer.country.length !== 2) {
+      return "Verifique o campo country, ele deve ter dois dígitos";
+   }
+
+   if (!customer.name || customer.name === '') {
+      return "O campo name é obrigatório";
+   }
+
+   if (!customer.name.includes(" ")) {
+      return "O nome deve conter primeiro nome e sobrenome";
+   }
+
+   if (!customer.documents || customer.documents.length === 0) {
+      return "Os dados do campo documents são obrigatórios"
+   }
+
+   if (!customer.documents[0].type || customer.documents[0].type === '') {
+      return "O dado type de documents é obrigatório"
+   }
+
+   if (!customer.documents[0].number || customer.documents[0].number === '') {
+      return "O dado number de documents é obrigatório"
+   }
+
+   if (customer.documents[0].number.length !== 11 || isNaN(customer.documents[0].number)) {
+      return "O campo number deve conter 11 digitos numéricos"
+   }
+}
+
 
 const checkout = async (req, res) => {
 
-   const cart = JSON.parse(await fs.readFile('./data/cart.json', (e, data) => data));
-   const products = JSON.parse(await fs.readFile('./data/products.json', (e, data) => data)).produtos;
+   try {
+      const cart = await readCart('./data/cart.json');
+      const products = await readProducts('./data/products.json');
 
-   if (cart.produtos.length === 0) return res.json({ mensagem: "O carrinho está vazio!" })
+      const error = validateCustomer(req.body.customer);
 
-   const updatedProductsArray = [];
+      if (error) {
+         res.status(400);
+         return res.json({ mensagem: error });
+      }
 
-   for (let i = 0; i < cart.produtos.length; i++) {
-      for (let j = 0; j < products.length; j++) {
-         if (cart.produtos[i].id === products[j].id) {
-            if (products[j].estoque < cart.produtos[i].quantidade) return res.json({
-               mensagem: `O produto (${cart.produtos[i].nome}) não tem estoque(${products[j].estoque}) suficiente para essa quantidade(${cart.produtos[i].quantidade}) desejada`
-            });
+      if (cart.produtos.length === 0) return res.json({ mensagem: "O carrinho está vazio!" })
 
-            products[j].estoque -= cart.produtos[i].quantidade;
-            updatedProductsArray.push(products[j]);
+      const updatedProductsArray = [];
+
+      for (let i = 0; i < cart.produtos.length; i++) {
+         for (let j = 0; j < products.length; j++) {
+            if (cart.produtos[i].id === products[j].id) {
+               if (products[j].estoque < cart.produtos[i].quantidade) return res.json({
+                  mensagem: `O produto (${cart.produtos[i].nome}) não tem estoque(${products[j].estoque}) suficiente para essa quantidade(${cart.produtos[i].quantidade}) desejada`
+               });
+
+               products[j].estoque -= cart.produtos[i].quantidade;
+               updatedProductsArray.push(products[j]);
+            }
          }
       }
-   }
 
-   const customerType = req.body.customer.type;
-   const { country, name, documents } = req.body.customer;
+      fs.writeFile('./data/products.json', JSON.stringify({ "produtos": products }, null, 2));
 
-   if (!customerType || customerType === '') {
+      resetCart('./data/cart.json');
+
+      res.json({
+         mensagem: "Compra efetuada com sucesso!",
+         cart
+      });
+   } catch (e) {
       res.status(400);
-      return res.json({
-         mensagem: "Informe o dado type"
-      })
+      res.json({
+         erro: `${e}`
+      });
    }
 
-   if (customerType !== 'individual') {
-      res.status(400);
-      return res.json({
-         mensagem: "O campo type dever ser 'individual' (este e-commerce só atende pessoas físicas)"
-      })
-   }
 
-   if (!country || country === '') {
-      res.status(400);
-      return res.json({
-         mensagem: "Informe o dado country"
-      })
-   }
-
-   if (country.length !== 2) {
-      res.status(400);
-      return res.json({
-         mensagem: "Verifique o campo country, ele deve ter dois dígitos"
-      })
-   }
-
-   if (!name || name === '') {
-      res.status(400);
-      return res.json({
-         mensagem: "Informe o dado name"
-      })
-   }
-
-   if (!name.includes(" ")) {
-      return res.json({
-         mensagem: "O nome deve conter primeiro nome e sobrenome"
-      })
-   }
-
-   if (!documents || documents.length === 0) {
-      res.status(400);
-      return res.json({
-         mensagem: "Informe os dados de documents"
-      })
-   }
-
-   if (!documents[0].type || documents[0].type === '') {
-      res.status(400);
-      return res.json({
-         mensagem: "Informe o dado type de documents"
-      })
-   }
-
-   if (!documents[0].number || documents[0].number === '') {
-      res.status(400);
-      return res.json({
-         mensagem: "Informe o dado number de documents"
-      })
-   }
-
-   if (documents[0].number.length !== 11 || isNaN(documents[0].number)) {
-      res.status(400);
-      return res.json({
-         mensagem: "O campo numver deve conter 11 digitos numéricos"
-      })
-   }
-
-   //abate do estoque
-   fs.writeFile('./data/products.json', JSON.stringify({ "produtos": products }, null, 2));
-
-   //limpa carrinho
-   fs.writeFile('./data/cart.json', JSON.stringify({
-      "subTotal": 0,
-      "dataDeEntrega": null,
-      "valorDoFrete": 0,
-      "totalAPagar": 0,
-      "produtos": [],
-   }, null, 2));
-
-
-
-   res.json({
-      mensagem: "Compra efetuada com sucesso!",
-      cart
-   });
 }
 
 module.exports = { checkout }
