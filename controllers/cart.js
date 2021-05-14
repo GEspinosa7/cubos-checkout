@@ -128,6 +128,18 @@ const removeProducts = async (req, res) => {
 
       cartProducts.splice(productIndex, 1);
 
+      if (cartProducts.length === 0) {
+         fs.writeFile('./data/cart.json', JSON.stringify({
+            "subTotal": 0,
+            "dataDeEntrega": 0,
+            "valorDoFrete": 0,
+            "totalAPagar": 0,
+            "produtos": cartProducts,
+         }, null, 2));
+
+         return res.json(cart);
+      }
+
       fs.writeFile('./data/cart.json', JSON.stringify({
          "subTotal": cart.subTotal,
          "dataDeEntrega": cart.dataDeEntrega,
