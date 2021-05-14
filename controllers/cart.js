@@ -16,6 +16,8 @@ const showCart = async (req, res) => {
    }
 }
 
+//TODO: CONSERTAR = só remover do estoque se confirmar a compra
+
 const addProductsToCart = async (req, res) => {
 
    try {
@@ -64,10 +66,10 @@ const addProductsToCart = async (req, res) => {
 
       if (cartProduct) {
          cartProduct.quantidade += body.quantidade;
-         products[productIndex].estoque -= body.quantidade;
+         // products[productIndex].estoque -= body.quantidade;
       } else {
          cartProducts.push(newProduct);
-         products[productIndex].estoque -= body.quantidade;
+         // products[productIndex].estoque -= body.quantidade;
       }
 
       let productSubtotal = 0;
@@ -91,7 +93,7 @@ const addProductsToCart = async (req, res) => {
          "produtos": cartProducts
       }
 
-      fs.writeFile('./data/products.json', JSON.stringify({ "produtos": products }, null, 2));
+      // fs.writeFile('./data/products.json', JSON.stringify({ "produtos": products }, null, 2));
 
       fs.writeFile('./data/cart.json', JSON.stringify(addToCart, null, 2));
 
@@ -106,7 +108,7 @@ const addProductsToCart = async (req, res) => {
 
 }
 
-const removeProducts = async (req, res) => {
+const removeProduct = async (req, res) => {
 
    try {
       const { idProduct } = req.params;
@@ -149,6 +151,7 @@ const removeProducts = async (req, res) => {
       }, null, 2));
 
       res.json(cart);
+
    } catch (e) {
       res.status(400);
       res.json({
@@ -157,4 +160,35 @@ const removeProducts = async (req, res) => {
    }
 }
 
-module.exports = { showCart, addProductsToCart, removeProducts };
+const cleanCart = async (req, res) => {
+   try {
+
+      const cart = JSON.parse(await fs.readFile('./data/cart.json', (e, data) => data));
+
+      if (cart.produtos.length === 0) {
+         return res.json({
+            mensagem: "O carrinho ja está vazio"
+         });
+      }
+
+      fs.writeFile('./data/cart.json', JSON.stringify({
+         "subTotal": 0,
+         "dataDeEntrega": null,
+         "valorDoFrete": 0,
+         "totalAPagar": 0,
+         "produtos": [],
+      }, null, 2));
+
+      res.json({
+         mensagem: "Todos os items do carrinho foram removidos com sucesso!"
+      })
+
+   } catch (e) {
+      res.status(400);
+      res.json({
+         erro: `${e}`
+      })
+   }
+}
+
+module.exports = { showCart, addProductsToCart, removeProduct, cleanCart };
