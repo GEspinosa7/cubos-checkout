@@ -108,6 +108,125 @@ const addProductsToCart = async (req, res) => {
 
 }
 
+const updateProduct = async (req, res) => {
+
+   try {
+      const { idProduct } = req.params;
+      const { quantidade } = req.body;
+
+      const cart = JSON.parse(await fs.readFile('./data/cart.json', (e, data) => data));
+      const cartProducts = cart.produtos;
+
+      const products = JSON.parse(await fs.readFile('./data/products.json', (e, data) => data)).produtos;
+
+      const cartProduct = cartProducts.find(p => p.id === Number(idProduct));
+
+      if (!cartProduct) {
+         res.status(404);
+         res.json({
+            mensagem: `O produto com o id ${idProduct} não está no carrinho`
+         })
+      }
+
+      const product = products.find(p => p.id === Number(idProduct));
+
+      if (quantidade === 0) return res.json({ erro: "Informe um numero maior ou menor que 0" });
+
+      if (quantidade < 0) {
+         if (Math.abs(quantidade) > cartProduct.quantidade) return res.json({ erro: "Não tem como remover mais items do que já existe" });
+
+         if (cartProduct.quantidade - Math.abs(quantidade) === 0) {
+            const productIndex = cartProducts.indexOf(cartProduct);
+
+            cartProducts.splice(productIndex, 1);
+
+            if (cartProducts.length === 0) {
+               fs.writeFile('./data/cart.json', JSON.stringify({
+                  "subTotal": 0,
+                  "dataDeEntrega": 0,
+                  "valorDoFrete": 0,
+                  "totalAPagar": 0,
+                  "produtos": cartProducts,
+               }, null, 2));
+
+               return res.json(cart);
+            }
+
+            fs.writeFile('./data/cart.json', JSON.stringify({
+               "subTotal": cart.subTotal,
+               "dataDeEntrega": cart.dataDeEntrega,
+               "valorDoFrete": cart.valorDoFrete,
+               "totalAPagar": cart.totalAPagar,
+               "produtos": cartProducts,
+            }, null, 2));
+
+            return res.json(cart);
+         }
+
+         const productIndex = cartProducts.indexOf(cartProduct);
+
+         const updatedProduct = {
+            "id": cartProduct.id,
+            "quantidade": cartProduct.quantidade + quantidade,
+            "nome": cartProduct.nome,
+            "preco": cartProduct.preco,
+            "categoria": cartProduct.categoria,
+         }
+
+         cartProducts.splice(productIndex, 1, updatedProduct);
+
+         fs.writeFile('./data/cart.json', JSON.stringify({
+            "subTotal": cart.subTotal,
+            "dataDeEntrega": cart.dataDeEntrega,
+            "valorDoFrete": cart.valorDoFrete,
+            "totalAPagar": cart.totalAPagar,
+            "produtos": cartProducts,
+         }, null, 2));
+
+         return res.json(cart);
+
+      }
+
+      if (product.estoque < (cartProduct.quantidade + quantidade)) {
+         return res.json({
+            mensagem: "Não existe estoque suficiente para adicionar mais desse produto"
+         });
+      }
+
+      const productIndex = cartProducts.indexOf(cartProduct);
+
+      const updatedProduct = {
+         "id": cartProduct.id,
+         "quantidade": cartProduct.quantidade + quantidade,
+         "nome": cartProduct.nome,
+         "preco": cartProduct.preco,
+         "categoria": cartProduct.categoria,
+      }
+
+      cartProducts.splice(productIndex, 1, updatedProduct);
+
+      fs.writeFile('./data/cart.json', JSON.stringify({
+         "subTotal": cart.subTotal,
+         "dataDeEntrega": cart.dataDeEntrega,
+         "valorDoFrete": cart.valorDoFrete,
+         "totalAPagar": cart.totalAPagar,
+         "produtos": cartProducts,
+      }, null, 2));
+
+      return res.json(cart);
+
+   } catch (e) {
+      res.status(400);
+      res.json({
+         erro: `${e}`
+      });
+   }
+
+   res.json({
+      teste: true,
+   })
+}
+
 const removeProduct = async (req, res) => {
 
    try {
