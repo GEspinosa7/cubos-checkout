@@ -16,8 +16,6 @@ const showCart = async (req, res) => {
    }
 }
 
-//TODO: CONSERTAR = só remover do estoque se confirmar a compra
-
 const addProductsToCart = async (req, res) => {
 
    try {
@@ -62,14 +60,12 @@ const addProductsToCart = async (req, res) => {
 
       const cartProduct = cartProducts.find(p => p.id === product.id);
 
-      const productIndex = products.indexOf(product);
+
 
       if (cartProduct) {
          cartProduct.quantidade += body.quantidade;
-         // products[productIndex].estoque -= body.quantidade;
       } else {
          cartProducts.push(newProduct);
-         // products[productIndex].estoque -= body.quantidade;
       }
 
       let productSubtotal = 0;
@@ -92,8 +88,6 @@ const addProductsToCart = async (req, res) => {
          "totalAPagar": (productSubtotal + shipping),
          "produtos": cartProducts
       }
-
-      // fs.writeFile('./data/products.json', JSON.stringify({ "produtos": products }, null, 2));
 
       fs.writeFile('./data/cart.json', JSON.stringify(addToCart, null, 2));
 
@@ -310,4 +304,4 @@ const cleanCart = async (req, res) => {
    }
 }
 
-module.exports = { showCart, addProductsToCart, removeProduct, cleanCart };
+module.exports = { showCart, cleanCart, addProductsToCart, removeProduct, updateProduct };
