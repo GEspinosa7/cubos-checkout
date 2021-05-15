@@ -1,6 +1,7 @@
 const fs = require('fs').promises;
 
 const { readCart, resetCart, readProducts } = require('../intermediary');
+const axiosInstance = require('../services/pagarme');
 
 function validateCustomer(customer) {
    if (!customer.type || customer.type === '') {
@@ -44,21 +45,24 @@ function validateCustomer(customer) {
    }
 }
 
-
 const checkout = async (req, res) => {
+   const { body } = req;
+   const { cupom } = req.query;
 
    try {
-      const cart = await readCart('./data/cart.json');
-      const products = await readProducts('./data/products.json');
-
-      const error = validateCustomer(req.body.customer);
+      const error = validateCustomer(body.customer);
 
       if (error) {
          res.status(400);
          return res.json({ mensagem: error });
       }
 
+      const cart = await readCart('./data/cart.json');
+      const products = await readProducts('./data/products.json');
+
       if (cart.produtos.length === 0) return res.json({ mensagem: "O carrinho está vazio!" })
+
+      const pedido = await axiosInstance.post('transactions', body);
 
       const updatedProductsArray = [];
 
@@ -77,12 +81,22 @@ const checkout = async (req, res) => {
 
       const sales = JSON.parse(await fs.readFile('./data/sales.json', (e, data) => data)).vendas;
 
+      // if (cupom) {
+      //    const sale = {
+      //       "id": sales.length + 1,
+      //       "dataVenda": new Date(),
+      //       "produtos": cart.produtos,
+      //       "valorVenda": cart.totalAPagar - Number(cupom),
+      //       "linkBoleto": pedido.data.boleto_url,
+      //    }
+      // }
+
       const sale = {
          "id": sales.length + 1,
          "dataVenda": new Date(),
          "produtos": cart.produtos,
          "valorVenda": cart.totalAPagar,
-         "linkBoleto": "https://pagar.me",
+         "linkBoleto": pedido.data.boleto_url,
       }
 
       fs.writeFile('./data/products.json', JSON.stringify({ "produtos": products }, null, 2));
@@ -90,17 +104,19 @@ const checkout = async (req, res) => {
 
       resetCart('./data/cart.json');
 
-      res.json({
+      return res.json({
          mensagem: "Compra efetuada com sucesso!",
-         cart
+         cart,
+         linkBoleto: pedido.data.boleto_url,
       });
-   } catch (e) {
-      res.status(400);
-      res.json({
-         erro: `${e}`
+
+   } catch (error) {
+      const { data: { errors }, status } = error.response;
+
+      return res.status(status).json({
+         erro: `${errors[0].parameter_name} - ${errors[0].message}`
       });
    }
-
 }
 
 module.exports = { checkout }
