@@ -1,33 +1,36 @@
 ![](https://i.imgur.com/xG74tOh.png)
 
+####Link para testes das rotas com [Swagger](http://localhost:8000/docs/)
+
 # Desafio | Back-end - Módulo 2
 
 Você acabou de ser contratado pela melhor empresa de tecnologia do mundo: a **CUBOS**.
-Sua primeira tarefa como desenvolvedor é criar uma API para realizar o CHECKOUT (finalização de compra) de produtos comercializados pela **CUBOS**, porém antes de realizarmos esse CHECKOUT, nós precisamos manipular o carrinho de compras e estoque desses produtos. 
+Sua primeira tarefa como desenvolvedor é criar uma API para realizar o CHECKOUT (finalização de compra) de produtos comercializados pela **CUBOS**, porém antes de realizarmos esse CHECKOUT, nós precisamos manipular o carrinho de compras e estoque desses produtos.
 
 Você poderá usar a [API completa](https://desafio-backend-m02.herokuapp.com/produtos) para comparar com a sua. (Veja como utilizar no arquivo 'testes.md')
 
 Seu papel é construir uma RESTful API que permita:
 
-- Adicionar produtos ao carrinho
-- Remover produtos do carrinho
-- Atualizar quantidades dos produtos no carrinho
-- Limpar o carrinho
-- Obter os dados do carrinho atual, incluindo:
-    - Os produtos que estão no carrinho, com seus dados
-    - O subtotal do carrinho (soma total em produtos)
-    - O valor do frete
-    - O valor total a pagar
-- Finalizar a venda (CHECKOUT)
-- Manipular estoque subtraindo ou adicionando quantidades de cada produto
+-   Adicionar produtos ao carrinho
+-   Remover produtos do carrinho
+-   Atualizar quantidades dos produtos no carrinho
+-   Limpar o carrinho
+-   Obter os dados do carrinho atual, incluindo:
+    -   Os produtos que estão no carrinho, com seus dados
+    -   O subtotal do carrinho (soma total em produtos)
+    -   O valor do frete
+    -   O valor total a pagar
+-   Finalizar a venda (CHECKOUT)
+-   Manipular estoque subtraindo ou adicionando quantidades de cada produto
 
 ## Requisitos obrigatórios
-- Sua API deve seguir o padrão REST
-- Seu código deve estar organizado, delimitando as responsabilidades de cada arquivo adequadamente. Ou seja, é esperado que ele tenha, no mínimo:
-    - Um arquivo index.js
-    - Um arquivo de rotas
-    - Um pasta com controladores
-- Evite códigos duplicados. Antes de copiar e colar, pense se não faz sentido esse pedaço de código estar centralizado numa função.
+
+-   Sua API deve seguir o padrão REST
+-   Seu código deve estar organizado, delimitando as responsabilidades de cada arquivo adequadamente. Ou seja, é esperado que ele tenha, no mínimo:
+    -   Um arquivo index.js
+    -   Um arquivo de rotas
+    -   Um pasta com controladores
+-   Evite códigos duplicados. Antes de copiar e colar, pense se não faz sentido esse pedaço de código estar centralizado numa função.
 
 ## Estoque
 
@@ -38,45 +41,48 @@ Para simular o estoque de produtos, que normalmente ficaria num banco de dados, 
 #### `GET` `/produtos`
 
 Essa rota deverá:
-- Listar todos os produtos e devolver no formato de `array` de produtos;
-- Listar apenas produtos que possuem estoque;
-- Filtrar produtos por `categoria`;
-- Filtrar produtos por `faixa de preço`;
-- Filtrar produtos por `categoria` e por `faixa de preço` ao mesmo tempo.
-    
+
+-   Listar todos os produtos e devolver no formato de `array` de produtos;
+-   Listar apenas produtos que possuem estoque;
+-   Filtrar produtos por `categoria`;
+-   Filtrar produtos por `faixa de preço`;
+-   Filtrar produtos por `categoria` e por `faixa de preço` ao mesmo tempo.
+
 Exemplos:
 
-- `/produtos`
-    - Deverá retornar todos os produtos em estoque
-- `/produtos?categoria=bazar`
-    - Deverá retornar todos os eletrodomésticos que tenham unidades em estoque
-- `/produtos?precoInicial=10000&precoFinal=200000`
-    - Deverá retornar todos os produtos que tenham unidades em estoque e custem entre 100 e 200 reais
-- `/produtos?precoInicial=10000&precoFinal=200000&categoria=bazar`
-    - Deverá retornar todos os produtos que tenham unidades em estoque e custem entre 100 e 200 reais e sejam eletrodomésticos
+-   `/produtos`
+    -   Deverá retornar todos os produtos em estoque
+-   `/produtos?categoria=bazar`
+    -   Deverá retornar todos os eletrodomésticos que tenham unidades em estoque
+-   `/produtos?precoInicial=10000&precoFinal=200000`
+    -   Deverá retornar todos os produtos que tenham unidades em estoque e custem entre 100 e 200 reais
+-   `/produtos?precoInicial=10000&precoFinal=200000&categoria=bazar`
+    -   Deverá retornar todos os produtos que tenham unidades em estoque e custem entre 100 e 200 reais e sejam eletrodomésticos
 
 ---
 
 #### `GET` `/carrinho`
 
 Esta rota deverá retornar:
-- Uma lista (array) contendo os `produtos` que estão no carrinho, com todas as suas informações:
-    - id
-    - nome
-    - preco
-    - categoria
-    - quantidade
-- O `subtotal`, ou seja, o total a pagar em produtos selecionados no carrinho
-- A `dataDeEntrega` que é fixada em 15 dias úteis para qualquer entrega;
-- O `valorDoFrete`, que segue a seguinte lógica: 
-    - Para compras `até` R$ 200,00 o valor do frete é R$ 50,00 e para compras `acima` de R$ 200,00 o frete é GRÁTIS;
-- O `totalAPagar` que é a soma do subtotal com o frete.
+
+-   Uma lista (array) contendo os `produtos` que estão no carrinho, com todas as suas informações:
+    -   id
+    -   nome
+    -   preco
+    -   categoria
+    -   quantidade
+-   O `subtotal`, ou seja, o total a pagar em produtos selecionados no carrinho
+-   A `dataDeEntrega` que é fixada em 15 dias úteis para qualquer entrega;
+-   O `valorDoFrete`, que segue a seguinte lógica:
+    -   Para compras `até` R$ 200,00 o valor do frete é R$ 50,00 e para compras `acima` de R$ 200,00 o frete é GRÁTIS;
+-   O `totalAPagar` que é a soma do subtotal com o frete.
 
 Exemplos:
 
 Naturalmente, o retorno dessa chamada deve variar de acordo com as possíveis chamadas que tenham sido feitas anteriormente, adicionando ou removendo produtos do carrinho.
 
-- Para um carrinho vazio, a chamada a `/carrinho` deverá retornar
+-   Para um carrinho vazio, a chamada a `/carrinho` deverá retornar
+
 ```json=
 {
     "produtos": [],
@@ -86,7 +92,9 @@ Naturalmente, o retorno dessa chamada deve variar de acordo com as possíveis ch
     "totalAPagar": 0
 }
 ```
-- Para um carrinho com produtos, a chamada a `/carrinho` deverá retornar um objeto no seguinte **formato**, embora o conteúdo possa variar:
+
+-   Para um carrinho com produtos, a chamada a `/carrinho` deverá retornar um objeto no seguinte **formato**, embora o conteúdo possa variar:
+
 ```json=
 {
   "subTotal": 1518,
@@ -115,12 +123,14 @@ Naturalmente, o retorno dessa chamada deve variar de acordo com as possíveis ch
 ---
 
 ---
+
 ### `POST` `/carrinho/produtos`
 
 Para esta rota, você deverá:
-- Informar `id` do produto e `quantidade` a ser inserida;
-- Antes de `adicionar` verificar se o produto tem estoque suficiente para a adição;
-- `Retornar` o carrinho, ou seja, a lista de produtos e suas respectivas quantidades, subtotal do carrinho, total a pagar, valor do frete e data de entrega. 
+
+-   Informar `id` do produto e `quantidade` a ser inserida;
+-   Antes de `adicionar` verificar se o produto tem estoque suficiente para a adição;
+-   `Retornar` o carrinho, ou seja, a lista de produtos e suas respectivas quantidades, subtotal do carrinho, total a pagar, valor do frete e data de entrega.
 
 Exemplo, ao passar esse `JSON` no body da requisição...
 
@@ -130,7 +140,9 @@ Exemplo, ao passar esse `JSON` no body da requisição...
 	"quantidade":1
 }
 ```
+
 ... o retorno deverá ser o carrinho, veja abaixo:
+
 ```json=
 {
   "subTotal": 1199,
@@ -154,15 +166,16 @@ Exemplo, ao passar esse `JSON` no body da requisição...
 ### `PATCH` `/carrinho/produtos/:idProduto`
 
 Para esta rota, você deverá deverá:
-- Informar o `id` do produto e a `quantidade` a ser alterada;
-- Para que a operação funcione, o carrinho deverá já conter algum produto com esse `id`. Caso contrário, a chamada deverá retornar um erro com uma mensagem adequada.
-- Caso a quantidade informada seja positiva, esse número produtos será adicionados ao carrinho. Para isso, é necessário que haja estoque suficiente. Nunca deve ser possível ter mais produtos no carrinho do que em estoque.
-- Caso a quantidade informada seja negativa, esse número produtos será removido ao carrinho. Caso a quantidade seja maior que o número de itens desse produto no carrinho, a operação deverá retornar erro.
-- A chamada deverá retornar o carrinho completo, como no exemplo de `GET /carrinho`
+
+-   Informar o `id` do produto e a `quantidade` a ser alterada;
+-   Para que a operação funcione, o carrinho deverá já conter algum produto com esse `id`. Caso contrário, a chamada deverá retornar um erro com uma mensagem adequada.
+-   Caso a quantidade informada seja positiva, esse número produtos será adicionados ao carrinho. Para isso, é necessário que haja estoque suficiente. Nunca deve ser possível ter mais produtos no carrinho do que em estoque.
+-   Caso a quantidade informada seja negativa, esse número produtos será removido ao carrinho. Caso a quantidade seja maior que o número de itens desse produto no carrinho, a operação deverá retornar erro.
+-   A chamada deverá retornar o carrinho completo, como no exemplo de `GET /carrinho`
 
 Exemplos
 
-- Para um carrinho como no exemplo de `PATCH /carrinho/produtos/3` a chamada passando os seguintes dados:
+-   Para um carrinho como no exemplo de `PATCH /carrinho/produtos/3` a chamada passando os seguintes dados:
 
 ```json=
 {
@@ -197,15 +210,15 @@ deverá retornar
 }
 ```
 
-
 ---
 
 ### `DELETE` `/carrinho/produtos/:idProduto`
 
 Para esta rota, você deverá:
-- Informar o `id` do produto a ser excluido do carrinho
-- Verificar se existe esse produto no carrinho. Caso não exista, deverá ser retornada uma mensagem de erro adequada
-- Caso seja possível, você deverá retornar o carrinho, como no exemplo em `GET /carrinho`
+
+-   Informar o `id` do produto a ser excluido do carrinho
+-   Verificar se existe esse produto no carrinho. Caso não exista, deverá ser retornada uma mensagem de erro adequada
+-   Caso seja possível, você deverá retornar o carrinho, como no exemplo em `GET /carrinho`
 
 Exemplo:
 
@@ -240,9 +253,11 @@ Nesta rota você deverá limpar o carrinho completamente, removendo todos os pro
 ### `POST` `/finalizar-compra`
 
 Nesta rota, você deverá, **OBRIGATORIAMENTE**:
-- Verificar se o carrinho está vazio. Caso esteja, retorne uma mensagem de erro.
-- Verificar se os produtos que estão no carrinho, ainda constam em estoque em quantidades suficientes. Caso não constem, deve-se retornar uma mensagem de erro adequada.
-- Verificar se estão sendo recebidos os dados do cliente, no formato abaixo:
+
+-   Verificar se o carrinho está vazio. Caso esteja, retorne uma mensagem de erro.
+-   Verificar se os produtos que estão no carrinho, ainda constam em estoque em quantidades suficientes. Caso não constem, deve-se retornar uma mensagem de erro adequada.
+-   Verificar se estão sendo recebidos os dados do cliente, no formato abaixo:
+
 ```json=
 {
       "type": "individual",
@@ -256,35 +271,39 @@ Nesta rota, você deverá, **OBRIGATORIAMENTE**:
       ],
 }
 ```
-- Validar dados do usuário antes da emissão do boleto, ou seja verificar se:
-    - O campo country tem dois dígitos
-    - O campo type é 'individual' (este e-commerce só atende pessoas físicas)
-    - O campo name tem, pelo menos, nome e sobrenome.
-    - O campo documents contem um cpf com 11 dígitos apenas numéricos.
-- Abater os itens vendidos das quantidades em estoque
-- Limpar o carrinho carrinho
-- Retornar uma mensagem de erro adequada, caso alguma validação não esteja ok.
-- Caso todas as validações estejam ok, você deve retornar:
-    - Mensagem de sucesso, 
-    - Carrinho (itens, quantidades, subtotal, data de entrega e total a pagar)
+
+-   Validar dados do usuário antes da emissão do boleto, ou seja verificar se:
+    -   O campo country tem dois dígitos
+    -   O campo type é 'individual' (este e-commerce só atende pessoas físicas)
+    -   O campo name tem, pelo menos, nome e sobrenome.
+    -   O campo documents contem um cpf com 11 dígitos apenas numéricos.
+-   Abater os itens vendidos das quantidades em estoque
+-   Limpar o carrinho carrinho
+-   Retornar uma mensagem de erro adequada, caso alguma validação não esteja ok.
+-   Caso todas as validações estejam ok, você deve retornar:
+    -   Mensagem de sucesso,
+    -   Carrinho (itens, quantidades, subtotal, data de entrega e total a pagar)
 
 # Parte Opcional
 
 ### `POST` `finalizar-compra`
 
 Além dos itens obrigatórios, neste endpoint, você poderá adicionalmente:
-- Integrar verdadeiramente com a `pagar.me`, utilizando o token de desenvolvimento da Cubos Academy `ak_test_rFF3WFkcS9DRdBK7Ocw6QOzOOQEScS`
-    - Coloque o vencimento do boleto para 3 dias uteis após a data atual
-    - Retorne, em caso de sucesso, o link do boleto com os outros dados.
-- Adicionar essa venda em um arquivo de pedidos,  usando o número da transação do PAGARME como id desse pedido
-- Permitir aplicarmos cupons de desconto:
-    - Inclua no carrinho um query parameter de cupom e retorne o carrinho com uma campo a mais de `descontos`.
-    - Lembre de, claro, atualizar o total a pagar
+
+-   Integrar verdadeiramente com a `pagar.me`, utilizando o token de desenvolvimento da Cubos Academy `ak_test_rFF3WFkcS9DRdBK7Ocw6QOzOOQEScS`
+    -   Coloque o vencimento do boleto para 3 dias uteis após a data atual
+    -   Retorne, em caso de sucesso, o link do boleto com os outros dados.
+-   Adicionar essa venda em um arquivo de pedidos, usando o número da transação do PAGARME como id desse pedido
+-   Permitir aplicarmos cupons de desconto:
+    -   Inclua no carrinho um query parameter de cupom e retorne o carrinho com uma campo a mais de `descontos`.
+    -   Lembre de, claro, atualizar o total a pagar
 
 ### Relatórios
 
 Em todo e-commerce é interessante ter relatórios de vendas. Crie novos endpoints, pensando em bons nomes e verbos que você julgar adequados, para que seja possível obter as seguintes informações:
-- Listar vendas por produto;
+
+-   Listar vendas por produto;
+
 ```json=
 {
   "relatorioProduto": {
@@ -295,7 +314,9 @@ Em todo e-commerce é interessante ter relatórios de vendas. Crie novos endpoin
   }
 }
 ```
-- Listar vendas por categoria de produto;
+
+-   Listar vendas por categoria de produto;
+
 ```json=
 {
   "relatorioCategoria": {
@@ -305,9 +326,11 @@ Em todo e-commerce é interessante ter relatórios de vendas. Crie novos endpoin
   }
 }
 ```
-- Listar vendas em um intervalo de tempo (`dataInicial` e `dataFinal`), esse relatório é exatamente igual aos relatórios por categoria e por produto, a única diferença é que ele filtra por intervalo de duas datas.
+
+-   Listar vendas em um intervalo de tempo (`dataInicial` e `dataFinal`), esse relatório é exatamente igual aos relatórios por categoria e por produto, a única diferença é que ele filtra por intervalo de duas datas.
 
 Obs.: Os relatórios pode ser filtrados acumulativamente, ou seja, filtrados por produto, categoria e intervalo (`dataInicial` e `dataFinal`) ao mesmo tempo. Caso não seja passado categoria, produto e nem intervalo, o end-point deve retornar todas as vendas realizadas, ex.:
+
 ```json=
 [
   {
@@ -366,8 +389,6 @@ Obs.: Os relatórios pode ser filtrados acumulativamente, ou seja, filtrados por
 
 Repare que para fazer este item opcional, é necessário primero fazer o item opcional de escrever em um arquivo as vendas realizadas.
 
-
 **LEMBRE-SE**: é melhor feito do quê perfeito!!!
-
 
 ###### tags: `back-end` `módulo 2` `nodeJS` `API REST` `desafio`
