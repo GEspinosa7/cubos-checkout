@@ -4,7 +4,7 @@
       "id": 1,
       "nome": "Pipoca para Microondas Manteiga YOKI 50g",
       "preco": 169,
-      "estoque": 6,
+      "estoque": 0,
       "categoria": "Bazar"
     },
     {
@@ -32,7 +32,7 @@
       "id": 5,
       "nome": "Biscoito BAUDUCCO Choco Biscuit Leite 80g",
       "preco": 519,
-      "estoque": 1,
+      "estoque": 0,
       "categoria": "Bazar"
     },
     {
@@ -67,7 +67,7 @@
       "id": 10,
       "nome": "Feijão Carioca Tipo 1 CAMIL Pacote 1kg",
       "preco": 799,
-      "estoque": 33,
+      "estoque": 24,
       "categoria": "Bazar"
     },
     {

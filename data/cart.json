@@ -1,7 +1,7 @@
 {
-   "subTotal": 0,
-   "dataDeEntrega": null,
-   "valorDoFrete": 0,
-   "totalAPagar": 0,
-   "produtos": []
-} 
+  "subTotal": 0,
+  "dataDeEntrega": 0,
+  "valorDoFrete": 0,
+  "totalAPagar": 0,
+  "produtos": []
+}
