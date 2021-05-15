@@ -2,6 +2,7 @@ const express = require('express');
 const { showCart, addProductsToCart, removeProduct, cleanCart, updateProduct } = require('./controllers/cart');
 const { listProducts } = require('./controllers/products');
 const { checkout } = require('./controllers/checkout');
+const { listReportSales } = require('./controllers/sales');
 
 const router = express();
 
@@ -17,5 +18,8 @@ router.delete('/carrinho', cleanCart);
 
 //cart checkout
 router.post('/carrinho/finalizar-compra', checkout);
+
+//report sales
+router.get('/relatorios/vendas', listReportSales);
 
 module.exports = router;

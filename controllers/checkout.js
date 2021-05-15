@@ -75,7 +75,18 @@ const checkout = async (req, res) => {
          }
       }
 
+      const sales = JSON.parse(await fs.readFile('./data/sales.json', (e, data) => data)).vendas;
+
+      const sale = {
+         "id": sales.length + 1,
+         "dataVenda": new Date(),
+         "produtos": cart.produtos,
+         "valorVenda": cart.totalAPagar,
+         "linkBoleto": "https://pagar.me",
+      }
+
       fs.writeFile('./data/products.json', JSON.stringify({ "produtos": products }, null, 2));
+      fs.writeFile('./data/sales.json', JSON.stringify({ "vendas": [...sales, sale] }, null, 2))
 
       resetCart('./data/cart.json');
 
@@ -89,7 +100,6 @@ const checkout = async (req, res) => {
          erro: `${e}`
       });
    }
-
 
 }
 
